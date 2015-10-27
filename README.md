@@ -8,8 +8,6 @@ Code for NIPS 2015 [Gradient-free Hamiltonain Monte Carlo with Efficient Kernel 
 This package implements the kernel HMC part of the paper. It heavily depends on the [kernel exponential family package](https://github.com/karlnapf/kernel_exp/family), where all gra
 dient estimation code is located.
 
-See [here](https://github.com/karlnapf/kernel_hmc/tree/master/kernel_hmc/examples) for a list of demos.
-
 Install dependencies:
 
     pip install -r https://raw.githubusercontent.com/karlnapf/kernel_hmc/master/requirements.txt
