@@ -1,0 +1,13 @@
+scipy>=0.15
+numpy>=1.6
+
+# bayesian optimisation via pybo and dependencies
+git+https://github.com/mwhoffman/ezplot.git#egg=ezplot
+git+https://github.com/mwhoffman/reggie.git#egg=reggie
+git+https://github.com/mwhoffman/pybo.git#egg=pybo
+
+# for cholesky updating
+git+https://github.com/jcrudy/choldate.git#egg=choldate
+
+# kernel_exp_family
+git+https://github.com/karlnapf/kernel_exp_family.git#egg=kernel_exp_family

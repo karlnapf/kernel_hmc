@@ -1,0 +1,42 @@
+language: python
+python:
+  - "2.7"
+
+virtualenv:
+  system_site_packages: true
+
+notifications:
+  email: false
+
+# new container based dependencies
+sudo: false
+addons:
+  apt:
+    packages:
+    - libatlas-base-dev
+    - gfortran
+    - python-numpy
+    - python-matplotlib
+    - cython
+
+# install up to date scipy, taken from
+# https://gist.github.com/debsankha/7f610a9f2a826803381a
+before_install:
+    - mkdir -p $HOME/.cache/pip/wheels    
+    # build wheel only if none present
+    - travis_wait pip wheel --find-links=$HOME/.cache/pip/wheels --use-wheel --wheel-dir=$HOME/.cache/pip/wheels scipy
+    # now install from it
+    - pip install --no-index --find-links=$HOME/.cache/pip/wheels scipy
+
+install:
+ - pip install -r requirements.txt --use-mirrors
+ - pip install coveralls
+
+script: 
+  - python setup.py install
+  - nosetests --with-coverage --cover-package=kernel_hmc
+  - cd kernel_hmc/examples && sh run_all.sh && cd ../..
+
+after_success:
+  - coveralls
+  
