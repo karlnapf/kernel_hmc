@@ -3,9 +3,10 @@
 [![Build Status](https://travis-ci.org/karlnapf/kernel_hmc.png)](https://travis-ci.org/karlnapf/kernel_hmc)
 [![Coverage Status](https://coveralls.io/repos/karlnapf/kernel_hmc/badge.svg?branch=master&service=github)](https://coveralls.io/github/karlnapf/kernel_hmc?branch=master)
 
-Code for NIPS 2015 [Gradient-free Hamiltonain Monte Carlo via Effecient Kernel Exponential Families](http://arxiv.org/abs/1506.02564).
+Code for NIPS 2015 [Gradient-free Hamiltonain Monte Carlo with Efficient Kernel Exponential Families](http://arxiv.org/abs/1506.02564).
 
-This package implements the kernel HMC part of the paper. It heavily depends on the [kernel exponential family package](https://github.com/karlnapf/kernel_exp/family), where all gradient estimation code is located.
+This package implements the kernel HMC part of the paper. It heavily depends on the [kernel exponential family package](https://github.com/karlnapf/kernel_exp/family), where all gra
+dient estimation code is located.
 
 See [here](https://github.com/karlnapf/kernel_hmc/tree/master/examples) for a list of demos.
 
