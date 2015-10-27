@@ -12,7 +12,7 @@ Install dependencies:
 
     pip install -r https://raw.githubusercontent.com/karlnapf/kernel_hmc/master/requirements.txt
     
-Install kernel_hmc:
+Install ```kernel_hmc```:
 
     pip install git+https://github.com/karlnapf/kernel_hmc.git
 
