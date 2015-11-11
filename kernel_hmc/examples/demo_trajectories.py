@@ -1,8 +1,8 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
 from kernel_exp_family.examples.tools import visualise_array, pdf_grid
-from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian, \
-    GammaEigenvalueRotatedGaussian
+from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian,\
+    sample_gaussian
 from kernel_hmc.proposals.kmc import KMCStatic
 import matplotlib.pyplot as plt
 import numpy as np
@@ -69,8 +69,8 @@ if __name__ == '__main__':
         target = Banana()
         X = sample_banana(N, D)
     else:
-        target = GammaEigenvalueRotatedGaussian(gamma_shape=1., D=D)
-        X = target.sample(N)
+        target = IsotropicZeroMeanGaussian(D=D)
+        X = sample_gaussian(N=N)
     
     # plot trajectories for both KMC lite and finite, parameters are chosen for D=2
     for surrogate in [
