@@ -23,5 +23,5 @@ Install ```kernel_hmc```:
 
 A list of examples can be found [here](kernel_hmc/examples). For example, run
 
-    python -m kernel_hmc.examples.demo_simple.py
+    python -m kernel_hmc.examples.demo_trajectories.py
 
