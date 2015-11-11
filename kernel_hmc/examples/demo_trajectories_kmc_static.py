@@ -1,19 +1,20 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
 from kernel_exp_family.examples.tools import visualise_array, pdf_grid
-from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian
+from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian, \
+    sample_gaussian
 from kernel_hmc.proposals.kmc import KMCStatic
 from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-# depends on theano, which is an optional dependency
+# banana gradient depends on theano, which is an optional dependency
 try:
-    from kernel_hmc.densities.bananas import Banana, sample_banana
+    from kernel_hmc.densities.banana import Banana, sample_banana
+    banana_available = True
 except ImportError:
-    print("Skipping example, depends on theano which is unavailable")
-    exit(0)
+    banana_available = False
 
 Log.set_loglevel(20)
 
@@ -53,13 +54,18 @@ def visualise_trajectory(Qs, acc_probs, log_pdf_q, target_log_pdf=None):
     
 if __name__ == '__main__':
     D = 2
-    target = Banana()
     N = 1000
-    X = sample_banana(N, D)
+
+    if banana_available:
+        target = Banana()
+        X = sample_banana(N, D)
+    else:
+        target = IsotropicZeroMeanGaussian()
+        X = sample_gaussian(N)
     
     for surrogate in [
                         KernelExpFiniteGaussian(gamma=.5, lmbda=0.001, m=1000, D=D),
-                        KernelExpLiteGaussian(sigma=25., lmbda=0.001, D=D)
+                        KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D)
                       ]:
         
         surrogate.fit(X)
@@ -72,11 +78,11 @@ if __name__ == '__main__':
         
         kmc = KMCStatic(surrogate, target, momentum, num_steps, num_steps, step_size, step_size)
         
-        current = sample_banana(N=1, D=D)[0]
         current = np.array([0, -3])
         current_log_pdf = target.log_pdf(current)
         Qs, acc_probs, log_pdf_q = kmc._proposal_trajectory(current, current_log_pdf)
         
         visualise_trajectory(Qs, acc_probs, log_pdf_q, surrogate)
         plt.suptitle("%s" % surrogate.__class__.__name__)
+        
     plt.show()
