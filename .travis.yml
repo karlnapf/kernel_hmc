@@ -28,6 +28,9 @@ before_install:
     # now install from it
     - pip install --no-index --find-links=$HOME/.cache/pip/wheels scipy
 
+# some examples use theano, which is not a requirement though
+	- pip install theano
+
 install:
  - pip install -r requirements.txt --use-mirrors
  - pip install coveralls
