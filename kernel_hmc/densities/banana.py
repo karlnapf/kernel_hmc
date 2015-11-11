@@ -40,7 +40,8 @@ def sample_banana(N, D, bananicity=0.03, V=100):
     return X
 
 class Banana(object):
-    def __init__(self, bananicity=0.03, V=100):
+    def __init__(self, D=2, bananicity=0.03, V=100):
+        self.D = D
         self.bananicity = bananicity
         self.V = V
     
