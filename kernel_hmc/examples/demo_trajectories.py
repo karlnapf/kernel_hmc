@@ -55,6 +55,7 @@ def visualise_trajectory(Qs, acc_probs, log_pdf_q, target_log_pdf=None):
 if __name__ == '__main__':
     """
     Example that visualises trajectories of KMC lite and finite on a simple target.
+    C.f. Figures 1 and 2 in the paper.
     """
     
     D = 2
