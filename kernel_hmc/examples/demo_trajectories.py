@@ -4,7 +4,6 @@ from kernel_exp_family.examples.tools import visualise_array, pdf_grid
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian, \
     GammaEigenvalueRotatedGaussian
 from kernel_hmc.proposals.kmc import KMCStatic
-from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -16,25 +15,28 @@ try:
 except ImportError:
     banana_available = False
 
-Log.set_loglevel(20)
-
-def visualise_trajectory(Qs, acc_probs, log_pdf_q, target_log_pdf=None):
+def visualise_trajectory(Qs, acc_probs, log_pdf_q, D, log_pdf=None):
     assert Qs.ndim == 2
     
-    if not target_log_pdf is None:
-        Xs = np.linspace(-30, 30, 75)
-        Ys = np.linspace(-10, 20, len(Xs))
-        D, G = pdf_grid(Xs, Ys, target_log_pdf)
+    plot_density = log_pdf is not None and D==2
     
     plt.figure(figsize=(10, 12))
     plt.subplot(411)
-    visualise_array(Xs, Ys, D)
+    
+    # plot density if given and dimension is 2
+    if plot_density:
+        Xs = np.linspace(-30, 30, 75)
+        Ys = np.linspace(-10, 20, len(Xs))
+        D, G = pdf_grid(Xs, Ys, log_pdf)
+        visualise_array(Xs, Ys, D)
+    
     plt.plot(Qs[:, 0], Qs[:, 1])
     plt.plot(Qs[0, 0], Qs[0, 1], 'r*', markersize=15)
     plt.title("Log-pdf surrogate")
     
     plt.subplot(412)
-    visualise_array(Xs, Ys, G)
+    if plot_density:
+        visualise_array(Xs, Ys, G)
     plt.plot(Qs[:, 0], Qs[:, 1])
     plt.plot(Qs[0, 0], Qs[0, 1], 'r*', markersize=15)
     plt.title("Gradient norm surrogate")
@@ -58,6 +60,7 @@ if __name__ == '__main__':
     C.f. Figures 1 and 2 in the paper.
     """
     
+    # for D=2, the fitted log-density is plotted, otherwise trajectory only
     D = 2
     N = 1000
     
@@ -69,9 +72,9 @@ if __name__ == '__main__':
         target = GammaEigenvalueRotatedGaussian(gamma_shape=1., D=D)
         X = target.sample(N)
     
-    # plot trajectories for both KMC lite and finite
+    # plot trajectories for both KMC lite and finite, parameters are chosen for D=2
     for surrogate in [
-                        KernelExpFiniteGaussian(gamma=.5, lmbda=0.001, m=1000, D=D),
+                        KernelExpFiniteGaussian(gamma=.5, lmbda=0.001, m=N, D=D),
                         KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D)
                       ]:
         surrogate.fit(X)
@@ -86,11 +89,11 @@ if __name__ == '__main__':
         kmc = KMCStatic(surrogate, target, momentum, num_steps, num_steps, step_size, step_size)
         
         # simulate trajectory from starting point, note _proposal_trajectory is a "hidden" method
-        current = np.array([0, -3])
+        current = X[0]
         current_log_pdf = target.log_pdf(current)
         Qs, acc_probs, log_pdf_q = kmc._proposal_trajectory(current, current_log_pdf)
         
-        visualise_trajectory(Qs, acc_probs, log_pdf_q, surrogate)
+        visualise_trajectory(Qs, acc_probs, log_pdf_q, D, surrogate)
         plt.suptitle("%s" % surrogate.__class__.__name__)
         
     plt.show()
