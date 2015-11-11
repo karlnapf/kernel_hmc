@@ -4,7 +4,6 @@ import theano
 import numpy as np
 import theano.tensor as T
 
-
 def log_banana_pdf_theano_expr(x, bananicity, V):
     transformed = x.copy()
     transformed = T.set_subtensor(transformed[1], x[1] - bananicity * ((x[0] ** 2) - V))

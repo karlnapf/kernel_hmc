@@ -1,13 +1,19 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
 from kernel_exp_family.examples.tools import visualise_array, pdf_grid
-from kernel_hmc.densities.banana import Banana, sample_banana
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian
 from kernel_hmc.proposals.kmc import KMCStatic
 from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+# depends on theano, which is an optional dependency
+try:
+    from kernel_hmc.densities.bananas import Banana, sample_banana
+except ImportError:
+    print("Skipping example, depends on theano which is unavailable")
+    exit(0)
 
 Log.set_loglevel(20)
 
