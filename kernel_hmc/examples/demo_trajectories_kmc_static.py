@@ -11,7 +11,7 @@ import numpy as np
 
 # banana gradient depends on theano, which is an optional dependency
 try:
-    from kernel_hmc.densities.bananas import Banana, sample_banana
+    from kernel_hmc.densities.banana import Banana, sample_banana
     banana_available = True
 except ImportError:
     banana_available = False
