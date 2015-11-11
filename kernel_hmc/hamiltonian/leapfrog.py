@@ -62,7 +62,7 @@ def leapfrog_no_storing(q, dlogq, p, dlogp, step_size=0.3, num_steps=1):
 
 def leapfrog_friction_habc_no_storing(c, V, q, dlogq, p, dlogp, step_size=0.3, num_steps=1):
     """
-    MATLAB code by Chen et: al
+    MATLAB code by Chen et al
     
     function [ newx ] = sghmc( U, gradU, m, dt, nstep, x, C, V )
     %% SGHMC using gradU, for nstep, starting at position x

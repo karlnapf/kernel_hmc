@@ -1,4 +1,6 @@
 from scipy.linalg import solve_triangular
+
+from kernel_hmc.tools.assertions import assert_positive_int
 import numpy as np
 
 
@@ -45,10 +47,24 @@ def sample_gaussian(N, mu=np.zeros(2), Sigma=np.eye(2), is_cholesky=False):
     
     return L.dot(np.random.randn(D, N)).T + mu
 
-class IsotropicZeroMeanGaussian(object):
+class GaussianBase(object):
+    def __init__(self, D=1):
+        assert_positive_int(D)
+        self.D = D
+    
+    def log_pdf(self, x):
+        raise NotImplementedError()
+    
+    def grad(self, x):
+        raise NotImplementedError()
+    
+    def sample(self):
+        raise NotImplementedError()
+
+class IsotropicZeroMeanGaussian(GaussianBase):
     def __init__(self, sigma=1., D=1):
         self.sigma = sigma
-        self.D = D
+        GaussianBase.__init__(self, D)
     
     def log_pdf(self, x):
         D = len(x)
