@@ -1,5 +1,6 @@
 from scipy.linalg import solve_triangular
 
+from kernel_hmc.tools.math import qmult
 from kernel_hmc.tools.assertions import assert_positive_int
 import numpy as np
 
@@ -78,4 +79,26 @@ class IsotropicZeroMeanGaussian(GaussianBase):
     
     def sample(self):
         return np.random.randn(self.D) * self.sigma
+
+class GammaEigenvalueRotatedGaussian(GaussianBase):
+    def __init__(self, gamma_shape=1., D=1):
+        GaussianBase.__init__(self, D)
         
+        # place a gamma on the Eigenvalues of a Gaussian covariance
+        EVs = np.random.gamma(shape=gamma_shape, size=D)
+        
+        # random orthogonal matrix to rotate
+        Q = qmult(np.eye(D))
+        Sigma = Q.T.dot(np.diag(EVs)).dot(Q)
+        
+        # Cholesky of random covariance
+        self.L = np.linalg.cholesky(Sigma)
+        
+    def log_pdf(self, x):
+        return log_gaussian_pdf(x, Sigma=self.L, is_cholesky=True, compute_grad=False)
+    
+    def grad(self, x):
+        return log_gaussian_pdf(x, Sigma=self.L, is_cholesky=True, compute_grad=True)
+    
+    def sample(self, N):
+        return sample_gaussian(N=N, mu=np.zeros(self.D), Sigma=self.L, is_cholesky=True)

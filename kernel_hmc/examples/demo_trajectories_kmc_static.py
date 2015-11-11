@@ -2,7 +2,7 @@ from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
 from kernel_exp_family.examples.tools import visualise_array, pdf_grid
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian, \
-    sample_gaussian
+    GammaEigenvalueRotatedGaussian
 from kernel_hmc.proposals.kmc import KMCStatic
 from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
@@ -11,7 +11,7 @@ import numpy as np
 
 # banana gradient depends on theano, which is an optional dependency
 try:
-    from kernel_hmc.densities.banana import Banana, sample_banana
+    from kernel_hmc.densities.bananas import Banana, sample_banana
     banana_available = True
 except ImportError:
     banana_available = False
@@ -53,31 +53,38 @@ def visualise_trajectory(Qs, acc_probs, log_pdf_q, target_log_pdf=None):
     plt.xlim([0, len(log_pdf_q)])
     
 if __name__ == '__main__':
+    """
+    Example that visualises trajectories of KMC lite and finite on a simple target.
+    """
+    
     D = 2
     N = 1000
-
+    
+    # target is banana density, fallback to Gaussian if theano is not present
     if banana_available:
         target = Banana()
         X = sample_banana(N, D)
     else:
-        target = IsotropicZeroMeanGaussian()
-        X = sample_gaussian(N)
+        target = GammaEigenvalueRotatedGaussian(gamma_shape=1., D=D)
+        X = target.sample(N)
     
+    # plot trajectories for both KMC lite and finite
     for surrogate in [
                         KernelExpFiniteGaussian(gamma=.5, lmbda=0.001, m=1000, D=D),
                         KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D)
                       ]:
-        
         surrogate.fit(X)
         
-        momentum = IsotropicZeroMeanGaussian(D=D, sigma=.1)
         
-        # fixed HMC parmaeters
+        # HMC parameters
+        momentum = IsotropicZeroMeanGaussian(D=D, sigma=.1)
         num_steps = 1000
         step_size = .01
         
+        # kmc sampler instance
         kmc = KMCStatic(surrogate, target, momentum, num_steps, num_steps, step_size, step_size)
         
+        # simulate trajectory from starting point, note _proposal_trajectory is a "hidden" method
         current = np.array([0, -3])
         current_log_pdf = target.log_pdf(current)
         Qs, acc_probs, log_pdf_q = kmc._proposal_trajectory(current, current_log_pdf)
