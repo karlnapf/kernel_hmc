@@ -37,13 +37,13 @@ def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, ti
         
         # print chain progress
         if times[it] > last_time_printed + 5:
-            log_str = "MCMC iteration %d/%d, current log_pdf: %.6f, avg acceptance=%.3f" % (it + 1, num_iter,
+            log_str = "MCMC iteration %d/%d, current log_pdf: %.6f, avg acceptance: %.3f" % (it + 1, num_iter,
                                                                        np.nan if log_pdf[it - 1] is None else log_pdf[it - 1],
                                                                        avg_accept)
             last_time_printed = times[it]
-            logger.debug(log_str)
+            logger.info(log_str)
         
-        # marginal sampler: do not re-use recompute log-pdf
+        # marginal sampler: make transition kernel re-compute log_pdf of current state
         if recompute_log_pdf:
             current_log_pdf = None
         
@@ -73,6 +73,9 @@ def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, ti
         # store sample
         samples[it] = current
         log_pdf[it] = current_log_pdf
+        
+        # update transition kernel, might do nothing
+        transition_kernel.update(samples[it], acc_prob[it])
         
     # recall it might be less than last iterations due to time budget
     return samples[:it], proposals[:it], accepted[:it], acc_prob[:it], log_pdf[:it], times[:it]
