@@ -28,8 +28,9 @@ before_install:
     # now install from it
     - pip install --no-index --find-links=$HOME/.cache/pip/wheels scipy
 
-# some examples use theano, which is not a requirement though
+# optional requirements
     - pip install theano
+    - pip install git+https://github.com/jcrudy/choldate.git
 
 install:
  - pip install -r requirements.txt --use-mirrors
