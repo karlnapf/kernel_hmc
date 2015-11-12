@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # MCMC parameters
     # small number of iterations here to keep runtime short, feel free to increase
     start = np.zeros(D)
-    num_iter = 100
+    num_iter = 50
     
     # run MCMC
     samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(sampler, start, num_iter, D)
