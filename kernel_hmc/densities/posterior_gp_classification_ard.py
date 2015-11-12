@@ -133,4 +133,7 @@ class GlassPosterior(object):
                                                           num_shogun_threads=1)
     
     def log_pdf(self, theta):
+        if not hasattr(self, "gp_posterior"):
+            raise RuntimeError("Call set_up method first.")
+        
         return self.gp_posterior.log_pdf(theta)
