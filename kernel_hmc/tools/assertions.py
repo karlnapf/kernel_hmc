@@ -30,19 +30,24 @@ def assert_positive_float(f):
     if not f>0:
         raise ValueError("Provided float (%f) must be positive." % f)
 
-def assert_implements_log_pdf_and_grad(density):
-    if not hasattr(density, 'log_pdf') or not callable(density.log_pdf):
-        raise ValueError("Density object does not implement log_pdf method")
+def assert_implements_log_pdf_and_grad(density, assert_log_pdf=True, assert_grad=True):
+    if assert_log_pdf:
+        if not hasattr(density, 'log_pdf') or not callable(density.log_pdf):
+            raise ValueError("Density object does not implement log_pdf method")
     
-    if not hasattr(density, 'grad') or not callable(density.grad):
-        raise ValueError("Density object does not implement grad method")
+    if assert_grad:
+        if not hasattr(density, 'grad') or not callable(density.grad):
+            raise ValueError("Density object does not implement grad method")
 
-def assert_inout_log_pdf_and_grad(density, D):
+def assert_inout_log_pdf_and_grad(density, D, assert_log_pdf=True, assert_grad=True):
     x = np.random.randn(D)
-    result = density.log_pdf(x)
     
-    if not type(result) is np.float64:
-        raise ValueError("Density object's log_pdf does not return numpy.float64 but %s" % str(type(result)))
+    if assert_log_pdf:
+        result = density.log_pdf(x)
+        
+        if not type(result) is np.float64:
+            raise ValueError("Density object's log_pdf does not return numpy.float64 but %s" % str(type(result)))
     
-    grad = density.grad(x)
-    assert_array_shape(grad, ndim=1, shape=(D,))
+    if assert_grad:
+        grad = density.grad(x)
+        assert_array_shape(grad, ndim=1, shape=(D,))
