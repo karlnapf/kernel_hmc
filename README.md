@@ -16,6 +16,11 @@ An [IPython notebook](http://nbviewer.ipython.org/gist/karlnapf/da0089726c43ed52
 Install dependencies:
 
     pip install -r https://raw.githubusercontent.com/karlnapf/kernel_hmc/master/requirements.txt
+
+Optional dependencies are:
+ * ```[cholupdate](https://github.com/jcrudy/choldate)``` for effecient low-rank updates of Cholesky factors of covariances. Speeds up Adaptive-Metropolis and KMC Finite from cubic to quadratic costs, see paper.
+ * ```[Shogun-toolbox](https://github.com/shogun-toolbox/shogun)``` for the Gaussian Process marginal posterior over hyper-parameters example. To compute unbiased estimates of the marginal likelihood via approximate inference and importance sampling.
+ * ```[theano](https://github.com/theano/theano)``` for the Banana example, to compute gradients via auto-grad.
     
 Install ```kernel_hmc```:
 
