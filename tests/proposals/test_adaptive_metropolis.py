@@ -1,13 +1,13 @@
 from nose import SkipTest
 from numpy.testing.utils import assert_allclose
 
-from kernel_hmc.proposals.adaptive_metropolis import rank_update_mean_covariance_cholesky_lmbda_naive
+from kernel_hmc.proposals.metropolis import rank_update_mean_covariance_cholesky_lmbda_naive
 import numpy as np
 
 
 # low rank update depends on "cholupdate" optional dependency
 try:
-    from kernel_hmc.proposals.adaptive_metropolis import rank_one_update_mean_covariance_cholesky_lmbda
+    from kernel_hmc.proposals.metropolis import rank_one_update_mean_covariance_cholesky_lmbda
     low_rank_update_available = True
 except ImportError:
     low_rank_update_available = False

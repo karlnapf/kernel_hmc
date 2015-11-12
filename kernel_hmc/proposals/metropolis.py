@@ -1,7 +1,9 @@
 from kernel_hmc.densities.gaussian import sample_gaussian
+from kernel_hmc.proposals.base import ProposalBase
 from kernel_hmc.tools.assertions import assert_implements_log_pdf_and_grad
 from kernel_hmc.tools.log import logger
 import numpy as np
+
 
 # low rank update depends on "cholupdate" optional dependency
 try:
@@ -130,7 +132,7 @@ def rank_update_mean_covariance_cholesky_lmbda_naive(u, lmbda=.1, mean=None, cov
     return updated_mean, update_cov_L
 
 
-class AdaptiveMetropolis():
+class AdaptiveMetropolis(ProposalBase):
     """
     Implements the adaptive MH.
     
@@ -265,6 +267,83 @@ class AdaptiveMetropolis():
 
         # generate proposal
         proposal = sample_gaussian(N=1, mu=current, Sigma=self.L_C, is_cholesky=True)[0]
+        proposal_log_pdf = self.target.log_pdf(proposal)
+        
+        # compute acceptance prob, proposals probability cancels due to symmetry
+        acc_log_prob = np.min([0, proposal_log_pdf - current_log_pdf])
+        
+        # probability of proposing current when would be sitting at proposal is symmetric
+        return proposal, np.exp(acc_log_prob), proposal_log_pdf
+    
+
+class StandardMetropolis(AdaptiveMetropolis):
+    """
+    Implements the adaptive MH with a isotropic proposal covariance.
+    """
+    
+    def __init__(self, target, D, nu2, gamma2, schedule=None, acc_star=None):
+        """
+        target        - Target density, must implement log_pdf method
+        D             - Target dimension
+        nu2           - Scaling parameter for covariance
+        gamma2        - Exploration parameter. Added to learned variance
+        schedule      - Optional. Function that generates adaptation weights
+                        given the MCMC iteration number.
+                        The weights are used in the stochastic updating of the
+                        covariance.
+                        
+                        If not set, internal covariance is never updated.
+        acc_star        Optional: If set, the nu2 parameter is tuned so that
+                        average acceptance equals acc_star, using the same schedule
+                        as for the chain history update (If schedule is set, otherwise
+                        ignored)
+        """
+        assert_implements_log_pdf_and_grad(target, assert_grad=False)
+        
+        self.target = target
+        self.D = D
+        self.nu2 = nu2
+        self.gamma2 = gamma2
+        self.schedule = schedule
+        self.acc_star = acc_star
+        
+        # some sanity checks
+        assert acc_star is None or acc_star > 0 and acc_star < 1
+        if schedule is not None:
+            lmbdas = np.array([schedule(t) for t in  np.arange(100)])
+            assert np.all(lmbdas >= 0)
+            assert np.allclose(np.sort(lmbdas)[::-1], lmbdas)
+        
+        # initialise running averages for covariance
+        self.t = 0
+
+    def update(self, z_new, previous_accpept_prob):
+        """
+        Updates the proposal covariance and potentially scaling parameter, according to schedule.
+        Note that every call increases a counter that is used for the schedule (if set)
+        
+        If not schedule is set, this method does not have any effect apart from counting.
+        
+        Parameters:
+        z_new                   - A 1-dimensional array of size (D) of.
+        previous_accpept_prob   - Acceptance probability of previous iteration
+        """
+        self.t += 1
+        
+        if self.schedule is not None:
+            if self.acc_star is not None:
+                self._update_scaling(previous_accpept_prob)
+    
+    def proposal(self, current, current_log_pdf):
+        """
+        Returns a sample from the proposal centred at current, acceptance probability,
+        and its log-pdf under the target.
+        """
+        if current_log_pdf is None:
+            current_log_pdf = self.target.log_pdf(current)
+
+        # generate proposal
+        proposal = sample_gaussian(N=1, mu=current, Sigma=np.eye(self.D) * np.sqrt(self.nu2), is_cholesky=True)[0]
         proposal_log_pdf = self.target.log_pdf(proposal)
         
         # compute acceptance prob, proposals probability cancels due to symmetry

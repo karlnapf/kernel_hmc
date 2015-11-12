@@ -1,10 +1,12 @@
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian
 from kernel_hmc.examples.demo_mcmc_kmc_static import visualise_trace
 from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
-from kernel_hmc.proposals.adaptive_metropolis import AdaptiveMetropolis
+from kernel_hmc.proposals.metropolis import AdaptiveMetropolis,\
+    StandardMetropolis
 from kernel_hmc.tools.log import logger
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 # depends on optional dependency shogun
 try:
@@ -24,6 +26,14 @@ def get_am_instance(target):
     
     return am
 
+def get_mh_instance(target):
+    # non-adaptive version
+    nu2 = 0.7
+    gamma2 = 0.1
+    mh = StandardMetropolis(target, D, nu2, gamma2)
+    
+    return mh
+
 if __name__ == '__main__':
     # Glass posterior has 9 dimensions
     D = 9
@@ -33,20 +43,25 @@ if __name__ == '__main__':
     else:
         target = IsotropicZeroMeanGaussian(D=D)
 
-    # transition kernel, pick any ob the above
-    sampler = get_am_instance(target)
+    # transition kernel, pick any
+    samplers = [
+                get_am_instance(target),
+                get_mh_instance(target)
+               ]
     
-    # MCMC parameters
-    # small number of iterations here to keep runtime short, feel free to increase
-    start = np.zeros(D)
-    num_iter = 50
-    
-    # run MCMC
-    samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(sampler, start, num_iter, D)
-    
-    visualise_trace(samples, log_pdf, accepted, idx0=1, idx1=6)
-    
-    plt.suptitle("%s on %s, acceptance rate: %.2f" % \
-                 (sampler.__class__.__name__, target.__class__.__name__, np.mean(accepted)))
-    
+    for sampler in samplers:
+        
+        # MCMC parameters
+        # small number of iterations here to keep runtime short, feel free to increase
+        start = np.zeros(D)
+        num_iter = 50
+        
+        # run MCMC
+        samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(sampler, start, num_iter, D)
+        
+        visualise_trace(samples, log_pdf, accepted, idx0=1, idx1=6)
+        
+        plt.suptitle("%s on %s, acceptance rate: %.2f" % \
+                     (sampler.__class__.__name__, target.__class__.__name__, np.mean(accepted)))
+        
     plt.show()
