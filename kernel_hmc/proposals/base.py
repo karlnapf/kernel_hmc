@@ -19,9 +19,9 @@ class ProposalBase(object):
     def proposal(self):
         pass
     
-    def update(self):
+    def update(self, current, acc_prob):
         pass
-
+    
 class HMCBase(ProposalBase):
     def __init__(self, target, momentum, num_steps_min=10, num_steps_max=100, step_size_min=0.05,
                  step_size_max=0.3):
@@ -29,9 +29,9 @@ class HMCBase(ProposalBase):
         if not isinstance(momentum, GaussianBase):
             raise TypeError("Momentum (%s) must be subclass of %s" % \
                             (str(type(momentum)), str(GaussianBase)))
-        assert_implements_log_pdf_and_grad(target)
+        assert_implements_log_pdf_and_grad(target, assert_grad=False)
         assert_implements_log_pdf_and_grad(momentum)
-        assert_inout_log_pdf_and_grad(target, momentum.D)
+        assert_inout_log_pdf_and_grad(target, momentum.D, assert_grad=False)
             
         assert_positive_int(num_steps_min)
         assert_positive_int(num_steps_max)
