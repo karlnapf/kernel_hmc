@@ -29,7 +29,7 @@ class HMCBase(ProposalBase):
         if not isinstance(momentum, GaussianBase):
             raise TypeError("Momentum (%s) must be subclass of %s" % \
                             (str(type(momentum)), str(GaussianBase)))
-        assert_implements_log_pdf_and_grad(target, assert_grad=False)
+        assert_implements_log_pdf_and_grad(target)
         assert_implements_log_pdf_and_grad(momentum)
         assert_inout_log_pdf_and_grad(target, momentum.D, assert_grad=False)
             
