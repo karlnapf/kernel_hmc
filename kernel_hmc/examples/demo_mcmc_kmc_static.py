@@ -1,11 +1,10 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
-from kernel_exp_family.examples.tools import visualise_array, pdf_grid
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian, \
     sample_gaussian
+from kernel_hmc.examples.plotting import visualise_trace
 from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
 from kernel_hmc.proposals.kmc import KMCStatic
-from kernel_hmc.tools.mcmc_convergence import autocorr
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -17,49 +16,6 @@ try:
 except ImportError:
     banana_available = False
 
-def visualise_trace(samples, log_pdf_trajectory, accepted, log_pdf_surrogate=None):
-    assert samples.ndim == 2
-    
-    D = samples.shape[1]
-    
-    plt.figure(figsize=(9, 9))
-    
-    plt.subplot(321)
-    plt.plot(samples[:, 0])
-    plt.title("Trace $x_1$")
-    plt.grid(True)
-    
-    plt.subplot(322)
-    plt.plot(samples[:, 1])
-    plt.title("Trace $x_2$")
-    plt.grid(True)
-    
-    plt.subplot(323)
-    if not log_pdf_surrogate is None and D == 2:
-        Xs = np.linspace(-28, 28, 50)
-        Ys = np.linspace(-6, 16, len(Xs))
-        D, _ = pdf_grid(Xs, Ys, log_pdf_surrogate)
-        visualise_array(Xs, Ys, D)
-        
-    plt.plot(samples[:, 0], samples[:, 1])
-    plt.title("Trace $(x_1, x_2)$")
-    plt.grid(True)
-    
-    plt.subplot(324)
-    plt.plot(log_pdf_trajectory)
-    plt.title("log pdf along trajectory")
-    plt.grid(True)
-    
-    plt.subplot(325)
-    plt.plot(autocorr(samples[:, 0]))
-    plt.title("Autocorrelation $x_1$")
-    plt.grid(True)
-    
-    plt.subplot(326)
-    plt.plot(autocorr(samples[:, 1]))
-    plt.title("Autocorrelation $x_2$")
-    plt.grid(True)
-    
 if __name__ == '__main__':
     # for D=2, the fitted log-density is plotted, otherwise trajectory only
     D = 2
@@ -92,7 +48,7 @@ if __name__ == '__main__':
         
         # MCMC parameters
         start = X[0]
-        num_iter = 500
+        num_iter = 300
         
         # run MCMC
         samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
