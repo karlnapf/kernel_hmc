@@ -38,6 +38,15 @@ def get_mh_instance(target):
     return mh
 
 if __name__ == '__main__':
+    """
+    This example samples from the marginal posterior over hyper-parameters of a
+    Gaussian Process classification model.
+    
+    All samplers in the paper are used.
+    
+    Note this is an illustrative demo and the number of iterations are set very low.
+    """
+    
     # Glass posterior has 9 dimensions
     D = 9
     if glass_available:

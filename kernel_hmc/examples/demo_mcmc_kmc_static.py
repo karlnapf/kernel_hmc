@@ -18,6 +18,14 @@ except ImportError:
     banana_available = False
 
 if __name__ == '__main__':
+    """
+    This example samples from the Banana target (if theano is installed).
+    It uses a fixed instance of KMC that receives a number of oracle samples as
+    input.
+    
+    Note this is an illustrative demo and the number of iterations are set very low.
+    """
+    # possible to change
     # for D=2, the fitted log-density is plotted, otherwise trajectory only
     D = 2
     N = 1000
@@ -48,14 +56,14 @@ if __name__ == '__main__':
         
         # kmc sampler instance
         # note that this version still adapts the step size towards certain acceptance
-        # set schedule=None to avoid this, other schedules possible
+        # set schedule=None to avoid this; other schedules are possible
         # the sqrt schedule is very conservative
         schedule = standard_sqrt_schedule
         acc_star = 0.7
         kmc = KMCStatic(surrogate, target, momentum, num_steps_min, num_steps_max, step_size_min, step_size_max,
                         adaptation_schedule=schedule, acc_star=acc_star)
         
-        # MCMC parameters
+        # MCMC parameters, feel free to increase number of iterations
         start = X[0]
         num_iter = 500
         

@@ -19,6 +19,13 @@ except ImportError:
 Log.set_loglevel(20)
 
 if __name__ == '__main__':
+    """
+    This example samples from the Banana target (if theano is installed).
+    It uses here uses an adaptive instance of KMC lite to start with, then (optionally) 
+    switches to KMC finite using the KMC exploration as initial sketch of the target
+    
+    Note this is an illustrative demo and the number of iterations are set very low.
+    """
     D = 2
     N = 1000
     
@@ -54,7 +61,7 @@ if __name__ == '__main__':
     # set to around 5000-10000 iterations to have KMC lite explored all of the support
     start = np.zeros(D)
     start[1] = -3
-    num_iter = 500
+    num_iter = 50
     
     # run MCMC
     samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
