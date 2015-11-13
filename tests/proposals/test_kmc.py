@@ -22,7 +22,7 @@ def get_hmc_parameters():
 def get_static_surrogate(D):
     N = 200
     X = np.random.randn(N, D)
-    est = KernelExpLiteGaussian(sigma=1, lmbda=.1, D=D)
+    est = KernelExpLiteGaussian(sigma=1, lmbda=.1, D=D, N=N)
     est.fit(X)
     
     return est

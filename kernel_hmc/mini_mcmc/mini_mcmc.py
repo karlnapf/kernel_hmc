@@ -49,7 +49,6 @@ def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, ti
         
         # generate proposal and acceptance probability
         logger.debug("Performing MCMC step")
-        
         proposals[it], acc_prob[it], log_pdf_proposal = transition_kernel.proposal(current, current_log_pdf)
         
         # accept-reject
@@ -75,7 +74,8 @@ def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, ti
         log_pdf[it] = current_log_pdf
         
         # update transition kernel, might do nothing
-        transition_kernel.update(samples[it], acc_prob[it])
+        # make all samples and acceptance probabilities available
+        transition_kernel.update(samples[:(it+1)], acc_prob[:(it+1)])
         
     # recall it might be less than last iterations due to time budget
     return samples[:it], proposals[:it], accepted[:it], acc_prob[:it], log_pdf[:it], times[:it]

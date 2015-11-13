@@ -17,15 +17,15 @@ def assert_array_shape(a, ndim=None, shape=None, dims={}):
             raise ValueError("Provided array's %d-th dimension's size (%d) is not as expected (%d)." % (k, a.shape[k], v))
 
 def assert_positive_int(i):
-    if not type(i) is np.int:
+    if not issubclass(type(i), np.int):
         raise TypeError("Provided argument (%s) must be npumpy.int." % str(type(i)))
     
     if not i>0:
         raise ValueError("Provided integer (%d) must be positive." % i)
 
 def assert_positive_float(f):
-    if not type(f) is np.float:
-        raise TypeError("Provided argument (%s) must be npumpy.int." % str(type(f)))
+    if not issubclass(type(f), np.float):
+        raise TypeError("Provided argument (%s) must be numpy.float." % str(type(f)))
     
     if not f>0:
         raise ValueError("Provided float (%f) must be positive." % f)
@@ -45,7 +45,7 @@ def assert_inout_log_pdf_and_grad(density, D, assert_log_pdf=True, assert_grad=T
     if assert_log_pdf:
         result = density.log_pdf(x)
         
-        if not type(result) is np.float64:
+        if not issubclass(type(result), np.float):
             raise ValueError("Density object's log_pdf does not return numpy.float64 but %s" % str(type(result)))
     
     if assert_grad:

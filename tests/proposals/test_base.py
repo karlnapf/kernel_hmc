@@ -22,7 +22,7 @@ def get_kmc_static_kernel():
 
     N = 200
     X = np.random.randn(N, momentum.D)
-    est = KernelExpLiteGaussian(sigma=1, lmbda=.1, D=momentum.D)
+    est = KernelExpLiteGaussian(sigma=1, lmbda=.1, D=momentum.D, N=N)
     est.fit(X)
     
     surrogate = get_static_surrogate(momentum.D)

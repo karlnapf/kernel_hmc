@@ -47,7 +47,7 @@ def visualise_trace(samples, log_pdf_trajectory, accepted, log_pdf_density=None,
     
     D = samples.shape[1]
     
-    plt.figure(figsize=(9, 12))
+    plt.figure(figsize=(15, 12))
     
     plt.subplot(421)
     plt.plot(samples[:, idx0])

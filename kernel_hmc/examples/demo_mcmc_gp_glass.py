@@ -6,6 +6,7 @@ from kernel_hmc.proposals.metropolis import AdaptiveMetropolis,\
 from kernel_hmc.tools.log import logger
 import matplotlib.pyplot as plt
 import numpy as np
+from kernel_hmc.proposals.base import standard_sqrt_schedule
 
 
 # depends on optional dependency shogun
@@ -20,17 +21,19 @@ def get_am_instance(target):
     # adaptive version that tunes itself towards the "optimal" acceptance rate
     nu2 = 1.
     gamma2 = 0.1
-    schedule = lambda t: 1. / (t + 1) ** 0.5
+    schedule = standard_sqrt_schedule
     acc_star = 0.234
     am = AdaptiveMetropolis(target, D, nu2, gamma2, schedule, acc_star)
     
     return am
 
 def get_mh_instance(target):
-    # non-adaptive version
     nu2 = 0.7
     gamma2 = 0.1
-    mh = StandardMetropolis(target, D, nu2, gamma2)
+    # set schedule=None for completely non-adaptive version
+    schedule = standard_sqrt_schedule
+    acc_star = 0.234
+    mh = StandardMetropolis(target, D, nu2, gamma2, schedule, acc_star)
     
     return mh
 
