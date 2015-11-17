@@ -20,10 +20,10 @@ Log.set_loglevel(20)
 if __name__ == '__main__':
     """
     This example shows how to run all Metropolis-Hastings sampler (including
-    the Kernel Adaptive Metropolis-Hastings) on a simple target.
+    the Kernel Adaptive Metropolis-Hastings) from the paper on a simple target.
     """
     # possible to change
-    D = 3
+    D = 2
     N = 1000
     
     # target is banana density, fallback to Gaussian if theano is not present
