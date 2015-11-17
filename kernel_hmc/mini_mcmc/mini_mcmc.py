@@ -1,8 +1,10 @@
 import time
 
-from kernel_hmc.tools.log import logger
+from kernel_hmc.tools.log import Log
 import numpy as np
 
+
+logger = Log.get_logger()
 
 def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, time_budget=None):
     # MCMC results

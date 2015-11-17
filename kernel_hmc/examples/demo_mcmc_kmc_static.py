@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     # plot trajectories for both KMC lite and finite, parameters are chosen for D=2
     for surrogate in [
-                        KernelExpFiniteGaussian(gamma=.5, lmbda=0.001, m=N, D=D),
+                        KernelExpFiniteGaussian(sigma=2, lmbda=0.001, m=N, D=D),
                         KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D, N=N)
                       ]:
         # try uncommenting this line to illustrate KMC's ability to mix even

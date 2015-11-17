@@ -1,9 +1,10 @@
 from kernel_hmc.densities.gaussian import sample_gaussian
 from kernel_hmc.proposals.base import ProposalBase, standard_sqrt_schedule
 from kernel_hmc.tools.assertions import assert_implements_log_pdf_and_grad
-from kernel_hmc.tools.log import logger
+from kernel_hmc.tools.log import Log
 import numpy as np
 
+logger = Log.get_logger()
 
 # low rank update depends on "cholupdate" optional dependency
 try:

@@ -5,8 +5,10 @@ from kernel_hmc.hamiltonian.leapfrog import leapfrog_no_storing, leapfrog
 from kernel_hmc.tools.assertions import assert_positive_int,\
     assert_implements_log_pdf_and_grad, assert_positive_float,\
     assert_inout_log_pdf_and_grad
-from kernel_hmc.tools.log import logger
+from kernel_hmc.tools.log import Log
 import numpy as np
+
+logger = Log.get_logger()
 
 def standard_sqrt_schedule(t):
     return 1. / np.sqrt(t + 1)

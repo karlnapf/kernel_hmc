@@ -15,13 +15,11 @@ class Log(object):
     
     @staticmethod
     def get_logger():
-        return logging.getLogger("big_mcmc") 
-
-logger = Log.get_logger()
+        return logging.getLogger("kernel_hmc") 
 
 if not Log.level_set:
     level = logging.INFO
-    logging.basicConfig(format='%(levelname)s: %(asctime)s: %(module)s.%(funcName)s(): %(message)s',
+    logging.basicConfig(format='KERNEL_HMC: %(levelname)s: %(asctime)s: %(module)s.%(funcName)s(): %(message)s',
                         level=level)
     Log.get_logger().info("Global logger initialised with loglevel %d" % level)
     Log.level_set = True

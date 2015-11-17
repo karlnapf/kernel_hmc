@@ -1,10 +1,9 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
-from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
+from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussianAdaptive
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian
 from kernel_hmc.examples.plotting import visualise_trace
 from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
 from kernel_hmc.proposals.kmc import KMC
-from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -16,8 +15,6 @@ try:
 except ImportError:
     banana_available = False
 
-Log.set_loglevel(20)
-
 if __name__ == '__main__':
     """
     This example samples from the Banana target (if theano is installed).
@@ -27,7 +24,7 @@ if __name__ == '__main__':
     Note this is an illustrative demo and the number of iterations are set very low.
     """
     D = 2
-    N = 1000
+    N = 500
     
     # target is banana density, with fallback option
     if banana_available:
@@ -38,7 +35,7 @@ if __name__ == '__main__':
     # KMC lite is geometrically ergodic on this target, use it if nothing about target is known
     # KMC finite can be used after burn-in, i.e. if some oracle samples are available
     # see below
-    surrogate = KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D, N=N)
+    surrogate = KernelExpLiteGaussianAdaptive(sigma=20., lmbda=0.001, D=D, N=N)
 
     # HMC parameters, step size will be adapted
     momentum = IsotropicZeroMeanGaussian(D=D)
@@ -61,7 +58,7 @@ if __name__ == '__main__':
     # set to around 5000-10000 iterations to have KMC lite explored all of the support
     start = np.zeros(D)
     start[1] = -3
-    num_iter = 50
+    num_iter = 2000
     
     # run MCMC
     samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
@@ -71,12 +68,13 @@ if __name__ == '__main__':
                  (surrogate.__class__.__name__, np.mean(accepted)))
     
     # now initialise KMC finite with the samples from the surrogate, and run for more
-    surrogate2 = KernelExpFiniteGaussian(gamma=.5, lmbda=0.001, D=D, m=N)
-    surrogate2.fit(samples)
+    thinned = samples[np.random.permutation(len(samples))[:N]]
+    surrogate2 = KernelExpFiniteGaussian(sigma=2, lmbda=0.001, D=D, m=N)
+    surrogate2.fit(thinned)
     
     # now use conservative schedule, or None at all if confident in oracle samples
     schedule2 = lambda t: 0.01 if t < 3000 else 0.
-    kmc2 = KMC(surrogate, target,
+    kmc2 = KMC(surrogate2, target,
               momentum, kmc.num_steps_min, kmc.num_steps_max, kmc.step_size[0], kmc.step_size[1],
               schedule2, acc_star)
     

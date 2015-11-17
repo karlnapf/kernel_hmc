@@ -1,8 +1,9 @@
 from kernel_hmc.proposals.base import HMCBase, standard_sqrt_schedule
 from kernel_hmc.tools.assertions import assert_implements_log_pdf_and_grad
-from kernel_hmc.tools.log import logger
+from kernel_hmc.tools.log import Log
 import numpy as np
 
+logger = Log.get_logger()
 
 class KMCStatic(HMCBase):
     """
