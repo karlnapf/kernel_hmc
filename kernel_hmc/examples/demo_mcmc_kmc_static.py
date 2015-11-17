@@ -68,9 +68,9 @@ if __name__ == '__main__':
         num_iter = 500
         
         # run MCMC
-        samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
+        samples, proposals, accepted, acc_prob, log_pdf, times, step_sizes = mini_mcmc(kmc, start, num_iter, D)
         
-        visualise_trace(samples, log_pdf, accepted, surrogate)
+        visualise_trace(samples, log_pdf, accepted, log_pdf_density=surrogate, step_sizes=step_sizes)
         plt.suptitle("%s, acceptance rate: %.2f" % \
                      (surrogate.__class__.__name__, np.mean(accepted)))
         

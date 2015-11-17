@@ -13,6 +13,7 @@ def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, ti
     accepted = np.zeros(num_iter) + np.nan
     acc_prob = np.zeros(num_iter) + np.nan
     log_pdf = np.zeros(num_iter) + np.nan
+    step_sizes = []
     
     # timings for output and time limit
     times = np.zeros(num_iter)
@@ -79,5 +80,8 @@ def mini_mcmc(transition_kernel, start, num_iter, D, recompute_log_pdf=False, ti
         # make all samples and acceptance probabilities available
         transition_kernel.update(samples[:(it+1)], acc_prob[:(it+1)])
         
+        # store step size
+        step_sizes += [transition_kernel.step_size]
+        
     # recall it might be less than last iterations due to time budget
-    return samples[:it], proposals[:it], accepted[:it], acc_prob[:it], log_pdf[:it], times[:it]
+    return samples[:it], proposals[:it], accepted[:it], acc_prob[:it], log_pdf[:it], times[:it], np.array(step_sizes)

@@ -64,5 +64,5 @@ class KMC(KMCStatic):
                     logger.info("Re-fitting surrogate (was probability lmbda=%.3f)" % lmbda)
                     self.surrogate.fit(samples)
             
-                if self.acc_star is not None:
-                    self._update_scaling(lmbda, previous_accpept_prob)
+            if self.acc_star is not None:
+                self._update_scaling(lmbda, previous_accpept_prob)

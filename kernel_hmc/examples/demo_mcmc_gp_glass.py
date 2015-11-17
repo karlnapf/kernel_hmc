@@ -3,7 +3,7 @@ from kernel_hmc.examples.demo_mcmc_kmc_static import visualise_trace
 from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
 from kernel_hmc.proposals.base import standard_sqrt_schedule
 from kernel_hmc.proposals.metropolis import AdaptiveMetropolis,\
-    StandardMetropolis
+    StandardMetropolis, KernelAdaptiveMetropolis
 from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,24 +21,39 @@ except ImportError:
 
 def get_am_instance(target):
     # adaptive version that tunes itself towards the "optimal" acceptance rate
-    nu2 = 1.
+    # set schedule=None for completely non-adaptive version
+    step_size = 1.
     gamma2 = 0.1
     schedule = standard_sqrt_schedule
     acc_star = 0.234
-    am = AdaptiveMetropolis(target, D, nu2, gamma2, schedule, acc_star)
+    am = AdaptiveMetropolis(target, D, step_size, gamma2, schedule, acc_star)
     
     return am
 
 def get_mh_instance(target):
-    nu2 = 0.7
-    gamma2 = 0.1
+    # adaptive version that tunes itself towards the "optimal" acceptance rate
     # set schedule=None for completely non-adaptive version
+    step_size = 0.7
     schedule = standard_sqrt_schedule
     acc_star = 0.234
-    mh = StandardMetropolis(target, D, nu2, gamma2, schedule, acc_star)
+    mh = StandardMetropolis(target, D, step_size, schedule, acc_star)
     
     return mh
 
+def get_kam_instance(target):
+    # adaptive version that tunes itself towards the "optimal" acceptance rate
+    # set schedule=None for completely non-adaptive version
+    
+    step_size = 1.
+    gamma2 = 0.1
+    schedule = standard_sqrt_schedule
+    acc_star = 0.234
+    kernel_sigma = 1.
+    
+    return KernelAdaptiveMetropolis(target, D, N=200, kernel_sigma=kernel_sigma,
+                                    gamma2=gamma2, step_size=step_size,
+                                    adaptation_schedule=schedule, acc_star=acc_star)
+    
 if __name__ == '__main__':
     """
     This example samples from the marginal posterior over hyper-parameters of a
@@ -60,7 +75,8 @@ if __name__ == '__main__':
     # transition kernel, pick any
     samplers = [
                 get_am_instance(target),
-                get_mh_instance(target)
+                get_mh_instance(target),
+                get_kam_instance(target)
                ]
     
     for sampler in samplers:
@@ -71,9 +87,9 @@ if __name__ == '__main__':
         num_iter = 50
         
         # run MCMC
-        samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(sampler, start, num_iter, D)
+        samples, proposals, accepted, acc_prob, log_pdf, times, step_sizes = mini_mcmc(sampler, start, num_iter, D)
         
-        visualise_trace(samples, log_pdf, accepted, idx0=1, idx1=6)
+        visualise_trace(samples, log_pdf, accepted, step_sizes, idx0=1, idx1=6)
         
         plt.suptitle("%s on %s, acceptance rate: %.2f" % \
                      (sampler.__class__.__name__, target.__class__.__name__, np.mean(accepted)))

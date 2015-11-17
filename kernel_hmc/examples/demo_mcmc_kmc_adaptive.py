@@ -63,9 +63,9 @@ if __name__ == '__main__':
     num_iter = 500
     
     # run MCMC
-    samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
+    samples, proposals, accepted, acc_prob, log_pdf, times, step_sizes = mini_mcmc(kmc, start, num_iter, D)
     
-    visualise_trace(samples, log_pdf, accepted, surrogate)
+    visualise_trace(samples, log_pdf, accepted, log_pdf_density=surrogate, step_sizes=step_sizes)
     plt.suptitle("KMC lite %s, acceptance rate: %.2f" % \
                  (surrogate.__class__.__name__, np.mean(accepted)))
     
@@ -81,10 +81,10 @@ if __name__ == '__main__':
     kmc2 = KMC(surrogate2, target,
               momentum, kmc.num_steps_min, kmc.num_steps_max, kmc.step_size[0], kmc.step_size[1],
               schedule2, acc_star)
-    
+
     # run MCMC
-    samples2, proposals2, accepted2, acc_prob2, log_pdf2, times2 = mini_mcmc(kmc2, start, num_iter, D)
-    visualise_trace(samples2, log_pdf2, accepted2, surrogate2)
+    samples2, proposals2, accepted2, acc_prob2, log_pdf2, times2, step_sizes = mini_mcmc(kmc2, start, num_iter, D)
+    visualise_trace(samples2, log_pdf2, accepted2, log_pdf_density=surrogate2, step_sizes=step_sizes)
     plt.suptitle("KMC finite, %s, acceptance rate: %.2f" % \
                  (surrogate.__class__.__name__, np.mean(accepted2)))
     plt.show()

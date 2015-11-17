@@ -1,8 +1,10 @@
-from kernel_hmc.densities.gaussian import sample_gaussian
+from scipy.spatial.distance import cdist, squareform, pdist
+
+from kernel_hmc.densities.gaussian import sample_gaussian, log_gaussian_pdf
 from kernel_hmc.proposals.base import ProposalBase, standard_sqrt_schedule
-from kernel_hmc.tools.assertions import assert_implements_log_pdf_and_grad
 from kernel_hmc.tools.log import Log
 import numpy as np
+
 
 logger = Log.get_logger()
 
@@ -145,49 +147,15 @@ class AdaptiveMetropolis(ProposalBase):
     factorisation is re-computed every time, costing O(d^3) computation.
     """
     
-    def __init__(self, target, D, step_size, gamma2,
+    def __init__(self, target, D, step_size=1., gamma2=0.1,
                  adaptation_schedule=standard_sqrt_schedule, acc_star=0.234):
-        """
-        target        - Target density, must implement log_pdf method
-        D             - Target dimension
-        step_size           - Scaling parameter for covariance
-        gamma2        - Exploration parameter. Added to learned variance
-        adaptation_schedule      - Optional. Function that generates adaptation weights
-                        given the MCMC iteration number.
-                        The weights are used in the stochastic updating of the
-                        covariance.
-                        
-                        If not set, internal covariance is never updated. In that case, call
-                        batch_covariance() before using.
-        acc_star        Optional: If set, the step_size parameter is tuned so that
-                        average acceptance equals acc_star, using the same adaptation_schedule
-                        as for the chain history update (If adaptation_schedule is set, otherwise
-                        ignored)
-        """
-        ProposalBase.__init__(self, D, step_size, adaptation_schedule, acc_star)
+        ProposalBase.__init__(self, target, D, step_size, adaptation_schedule, acc_star)
         
-        assert_implements_log_pdf_and_grad(target, assert_grad=False)
-        
-        self.target = target
-        self.D = D
         self.gamma2 = gamma2
         
-        self._initialise()
-    
-    def _initialise(self):
-        """
-        Initialises internal state. To be called before MCMC chain starts.
-        """
-        if self.adaptation_schedule is not None:
-            # start from scratch
-            self.mu = np.zeros(self.D)
-            
-            # initialise as scaled isotropic, otherwise Cholesky updates fail
-            self.L_C = np.eye(self.D) * np.sqrt(self.step_size)
-        else:
-            # make user call the set_batch_covariance() function
-            self.mu = None
-            self.L_C = None
+        # initialise as scaled isotropic, otherwise Cholesky updates fail
+        self.mu = np.zeros(self.D)
+        self.L_C = np.eye(self.D) * np.sqrt(self.step_size)    
 
     def set_batch_covariance(self, Z):
         self.mu = np.mean(Z, axis=0)
@@ -205,6 +173,7 @@ class AdaptiveMetropolis(ProposalBase):
             logger.debug("Updating covariance using lmbda=%.3f" % lmbda)
             if cholupdate_available:
                 # low-rank update of Cholesky, costs O(d^2) only, adding exploration noise on the fly
+                logger.debug("O(d^2) Low rank update of Cholesky of covariance")
                 self.mu, self.L_C = rank_one_update_mean_covariance_cholesky_lmbda(z_new,
                                                                                    lmbda,
                                                                                    self.mu,
@@ -213,6 +182,7 @@ class AdaptiveMetropolis(ProposalBase):
                                                                                    self.gamma2)
             else:
                 # low-rank update of Cholesky, naive costs O(d^3), adding exploration noise on the fly
+                logger.debug("O(d^3) Low rank update of Cholesky of covariance")
                 self.mu, self.L_C = rank_update_mean_covariance_cholesky_lmbda_naive(z_new,
                                                                                    lmbda,
                                                                                    self.mu,
@@ -229,10 +199,6 @@ class AdaptiveMetropolis(ProposalBase):
         Returns a sample from the proposal centred at current, acceptance probability,
         and its log-pdf under the target.
         """
-        if self.adaptation_schedule is None and (self.mu is None or self.L_C is None):
-            raise ValueError("AM has not seen data yet." \
-                             "Either call set_batch_covariance() or set update schedule")
-        
         if current_log_pdf is None:
             current_log_pdf = self.target.log_pdf(current)
 
@@ -252,32 +218,10 @@ class StandardMetropolis(AdaptiveMetropolis):
     Implements the adaptive MH with a isotropic proposal covariance.
     """
     
-    def __init__(self, target, D, step_size, gamma2,
+    def __init__(self, target, D, step_size=1.,
                  adaptation_schedule=standard_sqrt_schedule, acc_star=0.234):
-        """
-        target        - Target density, must implement log_pdf method
-        D             - Target dimension
-        step_size           - Scaling parameter for covariance
-        gamma2        - Exploration parameter. Added to learned variance
-        adaptation_schedule      - Optional. Function that generates adaptation weights
-                        given the MCMC iteration number.
-                        The weights are used in the stochastic updating of the
-                        covariance.
-                        
-                        If not set, internal covariance is never updated.
-        acc_star        Optional: If set, the step_size parameter is tuned so that
-                        average acceptance equals acc_star, using the same adaptation_schedule
-                        as for the chain history update (If adaptation_schedule is set, otherwise
-                        ignored)
-        """
-        AdaptiveMetropolis.__init__(self, target, D, step_size, gamma2,
+        AdaptiveMetropolis.__init__(self, target, D, step_size, 0.0,
                                     adaptation_schedule, acc_star)
-        
-        assert_implements_log_pdf_and_grad(target, assert_grad=False)
-        
-        self.target = target
-        self.D = D
-        self.gamma2 = gamma2
 
     def proposal(self, current, current_log_pdf):
         """
@@ -296,4 +240,107 @@ class StandardMetropolis(AdaptiveMetropolis):
         
         # probability of proposing current when would be sitting at proposal is symmetric
         return proposal, np.exp(acc_log_prob), proposal_log_pdf
+    
+def gamma_median_heuristic(Z, num_subsample=1000):
+    """
+    Computes the median pairwise distance in a random sub-sample of Z.
+    Returns a \gamma for k(x,y)=\exp(-\gamma ||x-y||^2), according to the median heuristc,
+    i.e. it corresponds to \sigma in k(x,y)=\exp(-0.5*||x-y||^2 / \sigma^2) where
+    \sigma is the median distance. \gamma = 0.5/(\sigma^2)
+    """
+    inds = np.random.permutation(len(Z))[:np.max([num_subsample, len(Z)])]
+    dists = squareform(pdist(Z[inds], 'sqeuclidean'))
+    median_dist = np.median(dists[dists > 0])
+    sigma = np.sqrt(0.5 * median_dist)
+    gamma = 0.5 / (sigma ** 2)
+    
+    return gamma
+
+class KernelAdaptiveMetropolis(ProposalBase):
+    def __init__(self, target, D, N, kernel_sigma=1., minimum_size_sigma_learning=100,
+                 step_size=1., gamma2=0.1, adaptation_schedule=standard_sqrt_schedule, acc_star=0.234):
+        ProposalBase.__init__(self, target, D, step_size, adaptation_schedule, acc_star)
+        
+        self.kernel_sigma = kernel_sigma
+        self.minimum_size_sigma_learning = minimum_size_sigma_learning
+        self.N = N
+        self.gamma2 = gamma2
+        self.Z = np.zeros((0, D))
+
+    def set_batch_covariance(self, Z):
+        self.Z = Z
+    
+    def update(self, samples, acc_probs):
+        self.t += 1
+        
+        previous_accpept_prob = acc_probs[-1]
+        if self.adaptation_schedule is not None:
+            # generate updating probability
+            lmbda = self.adaptation_schedule(self.t)
+            
+            if np.random.rand() < lmbda:
+                # update sub-sample of chain history
+                self.Z = samples[np.random.permutation(len(samples))[:self.N]]
+                
+                logger.info("Updated chain history sub-sample with probability lmbda=%.3f" % lmbda)
+                
+                if self.minimum_size_sigma_learning < len(self.Z):
+                    # re-compute median heuristic for kernel
+                    self.kernel_sigma = 1./gamma_median_heuristic(self.Z, self.N)
+                    logger.info("Re-computed kernel bandwith using median heuristic to sigma=%.3f" % self.kernel_sigma)
+            
+                # update scalling parameter if wanted
+                if self.acc_star is not None:
+                    self._update_scaling(lmbda, previous_accpept_prob)
+
+    def proposal(self, current, current_log_pdf):
+        """
+        Returns a sample from the proposal centred at current, acceptance probability,
+        and its log-pdf under the target.
+        """
+        if current_log_pdf is None:
+            current_log_pdf = self.target.log_pdf(current)
+        
+        L_R = self.construct_proposal_covariance_(current)
+        proposal = sample_gaussian(N=1, mu=current, Sigma=L_R, is_cholesky=True)[0]
+        proposal_log_prob = log_gaussian_pdf(proposal, current, L_R, is_cholesky=True)
+        proposal_log_pdf = self.target.log_pdf(proposal)
+        
+        # probability of proposing y when would be sitting at proposal
+        L_R_inv = self.construct_proposal_covariance_(proposal)
+        proopsal_log_prob_inv = log_gaussian_pdf(current, proposal, L_R_inv, is_cholesky=True)
+        
+        log_acc_prob = proposal_log_pdf - current_log_pdf + proopsal_log_prob_inv - proposal_log_prob
+        
+        return proposal, np.exp(log_acc_prob), proposal_log_pdf
+    
+    def construct_proposal_covariance_(self, y):
+        """
+        Helper method to compute Cholesky factor of the Gaussian Kameleon proposal centred at y.
+        """
+        R = self.gamma2 * np.eye(self.D)
+        
+        if len(self.Z) > 0:
+            # the code is parametrised in gamma=1./sigma
+            kernel_gamma = 1./self.kernel_sigma
+            # k(y,z) = exp(-gamma ||y-z||)
+            # d/dy k(y,z) = k(y,z) * (-gamma * d/dy||y-z||^2)
+            #             = 2 * k(y,z) * (-gamma * ||y-z||^2)
+            #             = 2 * k(y,z) * (gamma * ||z-y||^2)
+            
+            # gaussian kernel gradient, same as in kameleon-mcmc package, but without python overhead
+            sq_dists = cdist(y[np.newaxis, :], self.Z, 'sqeuclidean')
+            k = np.exp(-kernel_gamma * sq_dists)
+            neg_differences = self.Z - y
+            G = 2 * kernel_gamma * (k.T * neg_differences)
+            
+            # Kameleon
+            G *= 2  # = M
+            # R = gamma^2 I + \eta^2 * M H M^T
+            H = np.eye(len(self.Z)) - 1.0 / len(self.Z)
+            R += self.step_size * G.T.dot(H.dot(G))
+        
+        L_R = np.linalg.cholesky(R)
+        
+        return L_R
     

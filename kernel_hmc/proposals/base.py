@@ -14,7 +14,8 @@ def standard_sqrt_schedule(t):
     return 1. / np.sqrt(t + 1)
 
 class ProposalBase(object):
-    def __init__(self, D, step_size, adaptation_schedule, acc_star):
+    def __init__(self, target, D, step_size, adaptation_schedule, acc_star):
+        self.target = target
         self.D = D
         self.step_size = step_size
         self.adaptation_schedule = adaptation_schedule
@@ -29,6 +30,8 @@ class ProposalBase(object):
             assert np.all(lmbdas >= 0)
             assert np.allclose(np.sort(lmbdas)[::-1], lmbdas)
     
+        assert_implements_log_pdf_and_grad(target, assert_grad=False)
+        
     def initialise(self):
         pass
     
@@ -40,13 +43,10 @@ class ProposalBase(object):
         
         previous_accpept_prob = acc_probs[-1]
         
-        if self.adaptation_schedule is not None:
-            # generate updating weight
+        if self.adaptation_schedule is not None and self.acc_star is not None:
+            # always update with weight
             lmbda = self.adaptation_schedule(self.t)
-            
-            if np.random.rand() <= lmbda:
-                if self.acc_star is not None:
-                    self._update_scaling(lmbda, previous_accpept_prob)
+            self._update_scaling(lmbda, previous_accpept_prob)
     
     def _update_scaling(self, lmbda, accept_prob):
         # difference desired and actuall acceptance rate
@@ -55,10 +55,10 @@ class ProposalBase(object):
         new_log_step_size = np.log(self.step_size) + lmbda * diff
         new_step_size = np.exp(new_log_step_size)
         
-        logger.info("Acc. prob. diff. was %.3f-%.3f=%.3f. Updating step-size from %s to %s." % \
+        logger.debug("Acc. prob. diff. was %.3f-%.3f=%.3f. Updating step-size from %s to %s." % \
                      (accept_prob, self.acc_star, diff, self.step_size, new_step_size))
 
-        self.new_step_size = new_step_size
+        self.step_size = new_step_size
 
 class HMCBase(ProposalBase):
     def __init__(self, target, momentum, num_steps_min=10, num_steps_max=100, step_size_min=0.05,
@@ -84,9 +84,8 @@ class HMCBase(ProposalBase):
                              (step_size_min, step_size_max))
         
         step_size = np.array([step_size_min, step_size_max])
-        ProposalBase.__init__(self, momentum.D, step_size, adaptation_schedule, acc_star)
+        ProposalBase.__init__(self, target, momentum.D, step_size, adaptation_schedule, acc_star)
         
-        self.target = target
         self.momentum = momentum
         self.num_steps_min = num_steps_min
         self.num_steps_max = num_steps_max

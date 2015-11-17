@@ -42,7 +42,7 @@ def visualise_trajectory(Qs, acc_probs, log_pdf_q, D, log_pdf=None):
     plt.plot(log_pdf_q)
     plt.xlim([0, len(log_pdf_q)])
 
-def visualise_trace(samples, log_pdf_trajectory, accepted, log_pdf_density=None, idx0=0, idx1=1):
+def visualise_trace(samples, log_pdf_trajectory, accepted, step_sizes=None, log_pdf_density=None, idx0=0, idx1=1):
     assert samples.ndim == 2
     
     D = samples.shape[1]
@@ -97,3 +97,16 @@ def visualise_trace(samples, log_pdf_trajectory, accepted, log_pdf_density=None,
     plt.title("Average acceptance rate")
     plt.xlabel("MCMC iterations")
     plt.grid(True)
+    
+    if step_sizes is not None:
+        plt.subplot(428)
+        if step_sizes.ndim>1:
+            for i in range(step_sizes.shape[1]):
+                plt.plot(step_sizes[:,i])
+            plt.title("Step sizes")
+        else:
+            plt.plot(step_sizes)
+            plt.title("Step size")
+            
+        plt.xlabel("MCMC iterations")
+        plt.grid(True)
