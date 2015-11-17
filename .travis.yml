@@ -18,6 +18,7 @@ addons:
     - python-numpy
     - python-matplotlib
     - cython
+    - python-tk # for matplotlib in server
 
 # install up to date scipy, taken from
 # https://gist.github.com/debsankha/7f610a9f2a826803381a
