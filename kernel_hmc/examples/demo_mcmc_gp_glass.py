@@ -1,13 +1,15 @@
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian
 from kernel_hmc.examples.demo_mcmc_kmc_static import visualise_trace
 from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
+from kernel_hmc.proposals.base import standard_sqrt_schedule
 from kernel_hmc.proposals.metropolis import AdaptiveMetropolis,\
     StandardMetropolis
-from kernel_hmc.tools.log import logger
+from kernel_hmc.tools.log import Log
 import matplotlib.pyplot as plt
 import numpy as np
-from kernel_hmc.proposals.base import standard_sqrt_schedule
 
+
+logger = Log.get_logger()
 
 # depends on optional dependency shogun
 try:
