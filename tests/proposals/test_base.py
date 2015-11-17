@@ -3,7 +3,7 @@ from nose.tools import assert_raises
 
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian
-from kernel_hmc.proposals.base import HMCBase
+from kernel_hmc.proposals.hmc import HMCBase
 from kernel_hmc.proposals.kmc import KMCStatic
 from kernel_hmc.tools.assertions import assert_array_shape
 import numpy as np
