@@ -281,15 +281,14 @@ class KernelAdaptiveMetropolis(ProposalBase):
             if np.random.rand() < lmbda:
                 # update sub-sample of chain history
                 self.Z = samples[np.random.permutation(len(samples))[:self.N]]
-                
-                logger.info("Updated chain history sub-sample with probability lmbda=%.3f" % lmbda)
+                logger.info("Updated chain history sub-sample of size %d with probability lmbda=%.3f" % (self.N, lmbda))
                 
                 if self.minimum_size_sigma_learning < len(self.Z):
                     # re-compute median heuristic for kernel
                     self.kernel_sigma = 1./gamma_median_heuristic(self.Z, self.N)
                     logger.info("Re-computed kernel bandwith using median heuristic to sigma=%.3f" % self.kernel_sigma)
             
-                # update scalling parameter if wanted
+                # update scaling parameter if wanted
                 if self.acc_star is not None:
                     self._update_scaling(lmbda, previous_accpept_prob)
 
