@@ -1,5 +1,6 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
+from kernel_exp_family.estimators.lite.gaussian_low_rank import KernelExpLiteGaussianLowRank
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian,\
     sample_gaussian
 from kernel_hmc.examples.plotting import visualise_trajectory
@@ -35,7 +36,9 @@ if __name__ == '__main__':
     # plot trajectories for both KMC lite and finite, parameters are chosen for D=2
     for surrogate in [
                         KernelExpFiniteGaussian(sigma=10, lmbda=0.001, m=N, D=D),
-                        KernelExpLiteGaussian(sigma=20, lmbda=0.001, D=D, N=N)
+                        KernelExpLiteGaussian(sigma=20, lmbda=0.001, D=D, N=N),
+                        KernelExpLiteGaussianLowRank(sigma=20, lmbda=0.1, D=D, N=N, cg_tol=0.01),
+                        
                       ]:
         surrogate.fit(X)
         
