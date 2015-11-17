@@ -19,10 +19,11 @@ Log.set_loglevel(20)
 
 if __name__ == '__main__':
     """
+    This example shows how to run all Metropolis-Hastings sampler (including
+    the Kernel Adaptive Metropolis-Hastings) on a simple target.
     """
     # possible to change
-    # for D=2, the fitted log-density is plotted, otherwise trajectory only
-    D = 2
+    D = 3
     N = 1000
     
     # target is banana density, fallback to Gaussian if theano is not present
@@ -41,7 +42,7 @@ if __name__ == '__main__':
     for sampler in samplers:
         # MCMC parameters, feel free to increase number of iterations
         start = np.zeros(D)
-        num_iter = 10000
+        num_iter = 1000
         
         # run MCMC
         samples, proposals, accepted, acc_prob, log_pdf, times, step_sizes = mini_mcmc(sampler, start, num_iter, D)
