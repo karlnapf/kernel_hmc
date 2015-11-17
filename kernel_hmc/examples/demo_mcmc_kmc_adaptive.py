@@ -6,6 +6,7 @@ from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
 from kernel_hmc.proposals.kmc import KMC
 import matplotlib.pyplot as plt
 import numpy as np
+from kernel_exp_family.estimators.parameter_search_bo import BayesOptSearch
 
 
 # banana gradient depends on theano, which is an optional dependency
@@ -35,6 +36,7 @@ if __name__ == '__main__':
     # KMC lite is geometrically ergodic on this target, use it if nothing about target is known
     # KMC finite can be used after burn-in, i.e. if some oracle samples are available
     # see below
+    # this surrogate automatically learns parameters in every fit call
     surrogate = KernelExpLiteGaussianAdaptive(sigma=20., lmbda=0.001, D=D, N=N)
 
     # HMC parameters, step size will be adapted
@@ -58,7 +60,7 @@ if __name__ == '__main__':
     # set to around 5000-10000 iterations to have KMC lite explored all of the support
     start = np.zeros(D)
     start[1] = -3
-    num_iter = 2000
+    num_iter = 5000
     
     # run MCMC
     samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
@@ -68,8 +70,10 @@ if __name__ == '__main__':
                  (surrogate.__class__.__name__, np.mean(accepted)))
     
     # now initialise KMC finite with the samples from the surrogate, and run for more
+    # learn parameters before starting
     thinned = samples[np.random.permutation(len(samples))[:N]]
     surrogate2 = KernelExpFiniteGaussian(sigma=2, lmbda=0.001, D=D, m=N)
+    surrogate2.set_parameters_from_dict(BayesOptSearch(surrogate2, thinned, {'sigma': [-3,3]}).optimize(3))
     surrogate2.fit(thinned)
     
     # now use conservative schedule, or None at all if confident in oracle samples
