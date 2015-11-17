@@ -1,7 +1,9 @@
-from kernel_hmc.proposals.base import HMCBase, standard_sqrt_schedule
+from kernel_hmc.proposals.base import standard_sqrt_schedule
+from kernel_hmc.proposals.hmc import HMCBase
 from kernel_hmc.tools.assertions import assert_implements_log_pdf_and_grad
 from kernel_hmc.tools.log import Log
 import numpy as np
+
 
 logger = Log.get_logger()
 
@@ -33,8 +35,6 @@ class KMCStatic(HMCBase):
         self.target = kernel_target
         
         return acc_prob, log_pdf_q
-
-
 
 class KMC(KMCStatic):
     def __init__(self, surrogate, target, momentum, num_steps_min=10, num_steps_max=100, step_size_min=0.05,
