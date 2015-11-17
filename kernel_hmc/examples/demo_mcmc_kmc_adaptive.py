@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # set to around 5000-10000 iterations to have KMC lite explored all of the support
     start = np.zeros(D)
     start[1] = -3
-    num_iter = 5000
+    num_iter = 500
     
     # run MCMC
     samples, proposals, accepted, acc_prob, log_pdf, times = mini_mcmc(kmc, start, num_iter, D)
