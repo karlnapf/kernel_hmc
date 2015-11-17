@@ -1,13 +1,14 @@
 from kernel_exp_family.estimators.finite.gaussian import KernelExpFiniteGaussian
 from kernel_exp_family.estimators.lite.gaussian import KernelExpLiteGaussian
+from kernel_exp_family.estimators.lite.gaussian_low_rank import KernelExpLiteGaussianLowRank
 from kernel_hmc.densities.gaussian import IsotropicZeroMeanGaussian, \
     sample_gaussian
 from kernel_hmc.examples.plotting import visualise_trace
 from kernel_hmc.mini_mcmc.mini_mcmc import mini_mcmc
+from kernel_hmc.proposals.base import standard_sqrt_schedule
 from kernel_hmc.proposals.kmc import KMCStatic
 import matplotlib.pyplot as plt
 import numpy as np
-from kernel_hmc.proposals.base import standard_sqrt_schedule
 
 
 # banana gradient depends on theano, which is an optional dependency
@@ -41,7 +42,8 @@ if __name__ == '__main__':
     # plot trajectories for both KMC lite and finite, parameters are chosen for D=2
     for surrogate in [
                         KernelExpFiniteGaussian(sigma=2, lmbda=0.001, m=N, D=D),
-                        KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D, N=N)
+                        KernelExpLiteGaussian(sigma=20., lmbda=0.001, D=D, N=N),
+                        KernelExpLiteGaussianLowRank(sigma=20, lmbda=0.1, D=D, N=N, cg_tol=0.01),
                       ]:
         # try uncommenting this line to illustrate KMC's ability to mix even
         # when no (or incomplete) samples from the target are available
