@@ -23,3 +23,5 @@ if not Log.level_set:
                         level=level)
     Log.get_logger().info("Global logger initialised with loglevel %d" % level)
     Log.level_set = True
+
+logger = Log.get_logger()

@@ -37,13 +37,15 @@ class PseudoMarginalHyperparameters(object):
         self.sg_labels = sg.BinaryLabels(self.y)
         self.sg_feats_train = sg.RealFeatures(self.X.T)
         
-        # ARD: set set theta, which is in log-scale, as kernel weights
-        self.sg_kernel = sg.GaussianARDKernel(10, 1)
+        # ARD: set theta, which is in log-scale, as kernel weights
+        D = X.shape[1]
+        theta_start = np.ones(D)
         
         self.sg_mean = sg.ZeroMean()
         self.sg_likelihood = sg.LogitLikelihood()
         
     def log_pdf(self, theta):
+        self.sg_kernel = sg.GaussianARDKernel()
         self.sg_kernel.set_vector_weights(np.exp(theta))
         inference = sg.EPInferenceMethod(
 #         inference=sg.SingleLaplacianInferenceMethod(

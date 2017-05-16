@@ -1,7 +1,5 @@
 import hashlib
-
 from kernel_hmc.tools.log import logger
-
 
 def sha1sum(fname, blocksize=65536):
     """
