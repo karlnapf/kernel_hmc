@@ -46,7 +46,10 @@ class PseudoMarginalHyperparameters(object):
         
     def log_pdf(self, theta):
         self.sg_kernel = sg.GaussianARDKernel()
-        self.sg_kernel.set_vector_weights(np.exp(theta))
+        exp_theta = np.exp(theta)
+        if np.any(exp_theta<=0):
+            exp_theta[exp_theta<=0]=np.finfo('d').eps
+        self.sg_kernel.set_vector_weights()
         inference = sg.EPInferenceMethod(
 #         inference=sg.SingleLaplacianInferenceMethod(
                                         self.sg_kernel,
