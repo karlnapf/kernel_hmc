@@ -49,7 +49,7 @@ class PseudoMarginalHyperparameters(object):
         exp_theta = np.exp(theta)
         if np.any(exp_theta<=0):
             exp_theta[exp_theta<=0]=np.finfo('d').eps
-        self.sg_kernel.set_vector_weights()
+        self.sg_kernel.set_vector_weights(exp_theta)
         inference = sg.EPInferenceMethod(
 #         inference=sg.SingleLaplacianInferenceMethod(
                                         self.sg_kernel,
