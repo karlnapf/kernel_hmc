@@ -4,7 +4,11 @@ import urllib
 from kernel_hmc.densities.gaussian import log_gaussian_pdf
 from kernel_hmc.tools.file import sha1sum
 from kernel_hmc.tools.log import logger
-import modshogun as sg
+try:
+    import modshogun as sg
+except ImportError:
+    try:
+        import shogun as sg
 import numpy as np
 import scipy as sp
 
