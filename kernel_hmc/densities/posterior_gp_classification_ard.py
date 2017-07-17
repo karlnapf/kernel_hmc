@@ -7,8 +7,7 @@ from kernel_hmc.tools.log import logger
 try:
     import modshogun as sg
 except ImportError:
-    try:
-        import shogun as sg
+    import shogun as sg
 import numpy as np
 import scipy as sp
 
