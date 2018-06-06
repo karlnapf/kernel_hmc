@@ -49,7 +49,7 @@ class KMC(KMCStatic):
     def update(self, samples, acc_probs):
         self.t += 1
         
-        z_new = samples[-1]
+        z_new = samples[-1][np.newaxis, :]
         previous_accpept_prob = acc_probs[-1]
         
         if self.adaptation_schedule is not None:
